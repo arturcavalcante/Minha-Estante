@@ -1,0 +1,40 @@
+﻿@page "/livros"
+@using MinhaEstante.Models
+
+<h3>Minha Estante</h3>
+
+<ul>
+    @foreach (var livro in livros)
+    {
+        <li>@livro.Titulo - @livro.Autor</li>
+    }
+</ul>
+
+<input @bind="novoTitulo" placeholder="Título" />
+<input @bind="novoAutor" placeholder="Autor" />
+
+<button @onclick="AdicionarLivro">Adicionar Livro</button>
+
+@code {
+    List<Livro> livros = new List<Livro>
+    {
+        new Livro { Id = 1, Titulo = "1984", Autor = "George Orwell" },
+        new Livro { Id = 2, Titulo = "Dom Casmurro", Autor = "Machado de Assis" }
+    };
+
+    string novoTitulo;
+    string novoAutor;
+
+    void AdicionarLivro()
+    {
+        livros.Add(new Livro
+        {
+            Id = livros.Count + 1,
+            Titulo = novoTitulo,
+            Autor = novoAutor
+        });
+
+        novoTitulo = "";
+        novoAutor = "";
+    }
+}
