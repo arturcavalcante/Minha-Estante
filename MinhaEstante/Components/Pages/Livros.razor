@@ -1,19 +1,29 @@
 ﻿@page "/livros"
+@rendermode InteractiveServer
 @using MinhaEstante.Models
 
 <h3>Minha Estante</h3>
 
+<p>Total de livros: @livros.Count</p>
+
+<div>
+    <input @bind="novoTitulo" placeholder="Título" />
+    <input @bind="novoAutor" placeholder="Autor" />
+    <button type="button" @onclick="AdicionarLivro">Adicionar Livro</button>
+</div>
+
+<hr />
+
 <ul>
     @foreach (var livro in livros)
     {
-        <li>@livro.Titulo - @livro.Autor</li>
+        <li>
+            @livro.Titulo - @livro.Autor
+            <button type="button" @onclick="() => EditarLivro(livro)">Editar</button>
+            <button type="button" @onclick="() => RemoverLivro(livro.Id)">Remover</button>
+        </li>
     }
 </ul>
-
-<input @bind="novoTitulo" placeholder="Título" />
-<input @bind="novoAutor" placeholder="Autor" />
-
-<button @onclick="AdicionarLivro">Adicionar Livro</button>
 
 @code {
     List<Livro> livros = new List<Livro>
@@ -22,19 +32,49 @@
         new Livro { Id = 2, Titulo = "Dom Casmurro", Autor = "Machado de Assis" }
     };
 
-    string novoTitulo;
-    string novoAutor;
+    string novoTitulo = "";
+    string novoAutor = "";
+
+    Livro livroEditando = null;
 
     void AdicionarLivro()
     {
-        livros.Add(new Livro
+        if (livroEditando != null)
         {
-            Id = livros.Count + 1,
-            Titulo = novoTitulo,
-            Autor = novoAutor
-        });
+            // EDITAR
+            livroEditando.Titulo = novoTitulo;
+            livroEditando.Autor = novoAutor;
+
+            livroEditando = null;
+        }
+        else
+        {
+            // ADICIONAR
+            livros.Add(new Livro
+            {
+                Id = livros.Count + 1,
+                Titulo = novoTitulo,
+                Autor = novoAutor
+            });
+        }
 
         novoTitulo = "";
         novoAutor = "";
+    }
+
+    void RemoverLivro(int id)
+    {
+        var livro = livros.FirstOrDefault(l => l.Id == id);
+        if (livro != null)
+        {
+            livros.Remove(livro);
+        }
+    }
+
+    void EditarLivro(Livro livro)
+    {
+        livroEditando = livro;
+        novoTitulo = livro.Titulo;
+        novoAutor = livro.Autor;
     }
 }
