@@ -1,6 +1,8 @@
 ﻿@page "/livros"
 @rendermode InteractiveServer
 @using MinhaEstante.Models
+@using MinhaEstante.Data
+@inject AppDbContext _context
 
 <h3>Minha Estante</h3>
 
@@ -9,7 +11,7 @@
 <div>
     <input @bind="novoTitulo" placeholder="Título" />
     <input @bind="novoAutor" placeholder="Autor" />
-    <button type="button" @onclick="AdicionarLivro">Adicionar Livro</button>
+    <button style="margin: 4px; border-radius: 4px; border: 1px solid silver;" @onclick="SalvarLivro">Salvar</button>
 </div>
 
 <hr />
@@ -19,44 +21,52 @@
     {
         <li>
             @livro.Titulo - @livro.Autor
-            <button type="button" @onclick="() => EditarLivro(livro)">Editar</button>
-            <button type="button" @onclick="() => RemoverLivro(livro.Id)">Remover</button>
+            <button style="margin: 4px; border-radius: 4px; border: 1px solid silver;" @onclick="() => EditarLivro(livro)">Editar</button>
+            <button style="margin: 4px; border-radius: 4px; border: 1px solid silver;" @onclick="() => RemoverLivro(livro.Id)">Remover</button>
         </li>
     }
 </ul>
 
 @code {
-    List<Livro> livros = new List<Livro>
-    {
-        new Livro { Id = 1, Titulo = "1984", Autor = "George Orwell" },
-        new Livro { Id = 2, Titulo = "Dom Casmurro", Autor = "Machado de Assis" }
-    };
+    List<Livro> livros = new();
 
     string novoTitulo = "";
     string novoAutor = "";
 
     Livro livroEditando = null;
 
-    void AdicionarLivro()
+    protected override void OnInitialized()
     {
+        livros = _context.Livros.ToList();
+    }
+
+    void SalvarLivro()
+    {
+        if (string.IsNullOrWhiteSpace(novoTitulo) || string.IsNullOrWhiteSpace(novoAutor))
+            return;
+
         if (livroEditando != null)
         {
             // EDITAR
             livroEditando.Titulo = novoTitulo;
             livroEditando.Autor = novoAutor;
 
+            _context.Update(livroEditando);
             livroEditando = null;
         }
         else
         {
             // ADICIONAR
-            livros.Add(new Livro
+            _context.Livros.Add(new Livro
             {
-                Id = livros.Count + 1,
                 Titulo = novoTitulo,
                 Autor = novoAutor
             });
         }
+
+        _context.SaveChanges();
+
+        livros = _context.Livros.ToList();
 
         novoTitulo = "";
         novoAutor = "";
@@ -64,10 +74,14 @@
 
     void RemoverLivro(int id)
     {
-        var livro = livros.FirstOrDefault(l => l.Id == id);
+        var livro = _context.Livros.FirstOrDefault(l => l.Id == id);
+
         if (livro != null)
         {
-            livros.Remove(livro);
+            _context.Livros.Remove(livro);
+            _context.SaveChanges();
+
+            livros = _context.Livros.ToList();
         }
     }
 
